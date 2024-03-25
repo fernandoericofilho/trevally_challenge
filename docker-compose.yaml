@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init_pg_hba.sh:/docker-entrypoint-initdb.d/init_pg_hba.sh
+    command: ["postgres", "-c", "log_statement=all"]
+
+  flyway:
+    image: flyway/flyway
+    depends_on:
+      - postgres
+    volumes:
+      - ./src/main/resources/db/migration:/flyway/sql
+      - ./flyway/conf:/flyway/conf
+    environment:
+      - FLYWAY_URL=${FLYWAY_URL}
+      - FLYWAY_USER=${FLYWAY_USERNAME}
+      - FLYWAY_PASSWORD=${FLYWAY_PASSWORD}
+      - FLYWAY_LOCATIONS=filesystem:/flyway/sql
+    command: ["migrate"]
+
+volumes:
+  postgres_data:
+    driver: local
