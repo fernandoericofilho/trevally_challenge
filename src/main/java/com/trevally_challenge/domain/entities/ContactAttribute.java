@@ -1,9 +1,11 @@
 package com.trevally_challenge.domain.entities;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.UUID;
 
@@ -13,22 +15,15 @@ import java.util.UUID;
  * - {@code id}: Unique identifier for the attribute.
  * - {@code attributeName}: The name of the attribute.
  * - {@code attributeValue}: The value of the attribute.
- * - {@code contact}: The contact to which this attribute belongs.
  */
 @Data
-@Entity
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "csv_contact_attribute")
+@Document(collection = "contact_attributes")
 public class ContactAttribute {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     private UUID id;
     private String attributeName;
     private String attributeValue;
-
-    @ManyToOne
-    @JoinColumn(name = "contact_id")
-    private Contact contact;
 }

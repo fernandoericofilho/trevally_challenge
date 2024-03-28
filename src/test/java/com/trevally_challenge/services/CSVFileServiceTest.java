@@ -23,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-class CSVFileSourceServiceTest {
+class CSVFileServiceTest {
 
     public static final String TEST_CSV = "test.csv";
     public static final String TEXT_CSV = "text/csv";
@@ -37,7 +37,7 @@ class CSVFileSourceServiceTest {
     private ErrorMessages errorMessages;
 
     @InjectMocks
-    private CSVFileSourceService csvFileSourceService;
+    private CSVFileService csvFileService;
 
     @BeforeEach
     public void setup() {
@@ -53,7 +53,7 @@ class CSVFileSourceServiceTest {
         when(errorMessages.getMissingHeaderError()).thenReturn("Missing header error");
         when(errorMessages.getInvalidDelimiterError()).thenReturn("Invalid delimiter error");
 
-        List<CSVMappedColumnsDTO> columns = csvFileSourceService.getCSVHeaders(file, ",");
+        List<CSVMappedColumnsDTO> columns = csvFileService.extractHeaders(file, ",");
         assertEquals(3, columns.size());
         assertEquals("Header1", columns.get(0).getFrom());
         assertEquals("Header2", columns.get(1).getFrom());
@@ -67,7 +67,7 @@ class CSVFileSourceServiceTest {
 
         when(errorMessages.getEmptyFileError()).thenReturn("Empty file error");
 
-        assertThrows(EmptyFileException.class, () -> csvFileSourceService.getCSVHeaders(file, ","));
+        assertThrows(EmptyFileException.class, () -> csvFileService.extractHeaders(file, ","));
     }
 
     @Test
@@ -77,7 +77,7 @@ class CSVFileSourceServiceTest {
 
         when(errorMessages.getMissingHeaderError()).thenReturn("Missing header error");
 
-        assertThrows(MissingHeaderException.class, () -> csvFileSourceService.getCSVHeaders(file, ","));
+        assertThrows(MissingHeaderException.class, () -> csvFileService.extractHeaders(file, ","));
     }
 
     @Test
@@ -87,7 +87,7 @@ class CSVFileSourceServiceTest {
 
         when(errorMessages.getInvalidDelimiterError()).thenReturn("Invalid delimiter error");
 
-        assertThrows(InvalidDelimiterException.class, () -> csvFileSourceService.getCSVHeaders(file, ";"));
+        assertThrows(InvalidDelimiterException.class, () -> csvFileService.extractHeaders(file, ";"));
     }
 
     @Test
@@ -97,6 +97,6 @@ class CSVFileSourceServiceTest {
 
         when(errorMessages.getProcessingFileError()).thenReturn("Invalid file format. Only CSV files are supported.");
 
-        assertThrows(FileProcessingException.class, () -> csvFileSourceService.getCSVHeaders(file, ","));
+        assertThrows(FileProcessingException.class, () -> csvFileService.extractHeaders(file, ","));
     }
 }
