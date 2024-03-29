@@ -47,6 +47,11 @@ public class RestControllerAdvice extends ResponseEntityExceptionHandler {
         return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 
+    @ExceptionHandler(SourceNotFoundException.class)
+    private ResponseEntity<RestErrorMessage> sourceNotFoundHandler(SourceNotFoundException exception) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+    }
+
     private ResponseEntity<RestErrorMessage> buildResponse(HttpStatus status, String message) {
         RestErrorMessage restErrorMessage = new RestErrorMessage(status, message);
         return ResponseEntity.status(status).body(restErrorMessage);

@@ -1,7 +1,7 @@
 package com.trevally_challenge.services;
 
 import com.trevally_challenge.api.request.CSVRequest;
-import com.trevally_challenge.business.CSVFileService;
+import com.trevally_challenge.business.services.CSVFileService;
 import com.trevally_challenge.business.util.ErrorMessages;
 import com.trevally_challenge.infrastructure.dto.CSVMappedColumnsDTO;
 import com.trevally_challenge.infrastructure.exceptions.*;

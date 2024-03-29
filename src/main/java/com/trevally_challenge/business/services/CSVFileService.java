@@ -1,4 +1,4 @@
-package com.trevally_challenge.business;
+package com.trevally_challenge.business.services;
 
 import com.trevally_challenge.api.request.CSVRequest;
 import com.trevally_challenge.api.response.MappedColumnsResponse;
@@ -7,7 +7,7 @@ import com.trevally_challenge.infrastructure.dto.CSVMappedColumnsDTO;
 import com.trevally_challenge.infrastructure.entities.Contact;
 import com.trevally_challenge.infrastructure.entities.ContactAttribute;
 import com.trevally_challenge.infrastructure.entities.Source;
-import com.trevally_challenge.infrastructure.enums.ValidFileFormat;
+import com.trevally_challenge.infrastructure.enums.PermittedFormats;
 import com.trevally_challenge.infrastructure.exceptions.*;
 import com.trevally_challenge.infrastructure.repository.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,7 +45,7 @@ public class CSVFileService {
         if (!file.exists()) {
             throw new FileExistException(errorMessages.getFileExistExceptionMessageError() + file.getName());
         }
-        if (!file.getName().toLowerCase().endsWith(ValidFileFormat.VALID_CSV.getExtension())) {
+        if (!file.getName().toLowerCase().endsWith(PermittedFormats.CSV.getExtension())) {
             throw new FileExtensionException(errorMessages.getFileExtensionExceptionMessageError());
         }
     }
@@ -115,7 +115,7 @@ public class CSVFileService {
 
     private void mapContact(List<Contact> contacts, String email, List<ContactAttribute> attributes) {
         Contact contact = new Contact();
-        contact.setId(UUID.randomUUID());
+        contact.setId(UUID.randomUUID().toString());
         contact.setEmail(email);
         contact.setAttributes(attributes);
         contacts.add(contact);
@@ -134,7 +134,7 @@ public class CSVFileService {
 
     private ContactAttribute createContactAttribute(String attributeName, String attributeValue) {
         ContactAttribute attribute = new ContactAttribute();
-        attribute.setId(UUID.randomUUID());
+        attribute.setId(UUID.randomUUID().toString());
         attribute.setAttributeName(attributeName);
         attribute.setAttributeValue(attributeValue);
         return attribute;

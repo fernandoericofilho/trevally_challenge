@@ -6,8 +6,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
-import java.util.UUID;
-
 /**
  * Represents an attribute of a contact extracted from a CSV file.
  *
@@ -22,7 +20,7 @@ import java.util.UUID;
 public class ContactAttribute {
 
     @Id
-    private UUID id;
+    private String id;
     private String attributeName;
     private String attributeValue;
 }

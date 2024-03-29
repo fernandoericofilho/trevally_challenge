@@ -7,6 +7,72 @@
 	},
 	"item": [
 		{
+			"name": "Source",
+			"item": [
+				{
+					"name": "getSource",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/sources/66073528b0c67c10af8530f2",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"sources",
+								"66073528b0c67c10af8530f2"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "deleteSource",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:8080/sources/6606f32fbcc29902d42174e0asd",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"sources",
+								"6606f32fbcc29902d42174e0asd"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
 			"name": "extractHeader",
 			"event": [
 				{
@@ -73,7 +139,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"filePath\": \"C:/Estudo/2024/trevally_challenge/src/main/resources/files/exampleFile.csv\",\r\n    \"delimiter\": \"b\",\r\n    \"mappedColumns\": [\r\n        {\r\n            \"from\": \"EMAIL\",\r\n            \"label\": \"emailzinho\",\r\n            \"index\": 0\r\n        },\r\n        {\r\n            \"from\": \"FIRST_NAME\",\r\n            \"label\": \"123\",\r\n            \"index\": 0\r\n        },\r\n        {\r\n            \"from\": \"LAST_NAME\",\r\n            \"label\": \"teste\",\r\n            \"index\": 0\r\n        },\r\n        {\r\n            \"from\": \"AGE\",\r\n            \"label\": \"AGE\",\r\n            \"index\": 2\r\n        },\r\n        {\r\n            \"from\": \"FULL NAME\",\r\n            \"label\": \"FULL NAME\",\r\n            \"index\": 1\r\n        },\r\n        {\r\n            \"from\": \"ADDRESS\",\r\n            \"label\": \"ADDRESS\",\r\n            \"index\": 5\r\n        }\r\n    ]\r\n}"
+					"raw": "{\r\n    \"filePath\": \"C:/Estudo/2024/trevally_challenge/src/main/resources/files/exampleFile.csv\",\r\n    \"delimiter\": \";\",\r\n    \"mappedColumns\": [\r\n        {\r\n            \"from\": \"EMAIL\",\r\n            \"label\": \"emailzinho\",\r\n            \"index\": 0\r\n        },\r\n        {\r\n            \"from\": \"FIRST_NAME\",\r\n            \"label\": \"123\",\r\n            \"index\": 0\r\n        },\r\n        {\r\n            \"from\": \"LAST_NAME\",\r\n            \"label\": \"teste\",\r\n            \"index\": 0\r\n        },\r\n        {\r\n            \"from\": \"AGE\",\r\n            \"label\": \"AGE\",\r\n            \"index\": 2\r\n        },\r\n        {\r\n            \"from\": \"FULL NAME\",\r\n            \"label\": \"FULL NAME\",\r\n            \"index\": 1\r\n        },\r\n        {\r\n            \"from\": \"ADDRESS\",\r\n            \"label\": \"ADDRESS\",\r\n            \"index\": 5\r\n        }\r\n    ]\r\n}"
 				},
 				"url": {
 					"raw": "http://localhost:8080/csv/persist",
@@ -114,7 +180,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n    \"filePath\": \"C:/Estudo/2024/trevally_challenge/src/main/resources/files/exampleFile.csv\",\r\n    \"delimiter\": \"b\",\r\n    {{mappedColumns}}\r\n}"
+					"raw": "{\r\n    \"filePath\": \"C:/Estudo/2024/trevally_challenge/src/main/resources/files/exampleFile.csv\",\r\n    \"delimiter\": \";\",\r\n    \"mappedColumns\": {{mappedColumns}}\r\n}"
 				},
 				"url": {
 					"raw": "http://localhost:8080/csv/persist",

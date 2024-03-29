@@ -1,8 +1,8 @@
-package com.trevally_challenge.api;
+package com.trevally_challenge.api.controllers;
 
 import com.trevally_challenge.api.request.CSVRequest;
 import com.trevally_challenge.api.response.MappedColumnsResponse;
-import com.trevally_challenge.business.CSVFileService;
+import com.trevally_challenge.business.services.CSVFileService;
 import com.trevally_challenge.infrastructure.entities.Source;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

@@ -1,11 +1,11 @@
 package com.trevally_challenge.infrastructure.enums;
 
-public enum ValidFileFormat {
-    VALID_CSV(".csv");
+public enum PermittedFormats {
+    CSV(".csv");
 
     private final String extension;
 
-    ValidFileFormat(String extension) {
+    PermittedFormats(String extension) {
         this.extension = extension;
     }
 

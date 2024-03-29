@@ -7,7 +7,6 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.util.List;
-import java.util.UUID;
 
 /**
  * Represents a contact extracted from a CSV file.
@@ -23,7 +22,7 @@ import java.util.UUID;
 public class Contact {
 
     @Id
-    private UUID id;
+    private String id;
     private String email;
     private List<ContactAttribute> attributes;
 }

@@ -16,5 +16,6 @@ public class ErrorMessages {
     private String invalidDelimiterExceptionMessageError;
     private String indexOutOfRangeExceptionMessageError;
     private String emptyContactExceptionMessageError;
+    private String sourceNotFoundExceptionMessageError;
 
 }
