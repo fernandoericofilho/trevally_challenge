@@ -105,9 +105,20 @@ class CSVFileServiceTest {
 
         String filePath = "src/test/resources/files/emptyContacts.csv";
         String delimiter = ";";
+
+        List<CSVMappedColumnsDTO> mappedColumns = Arrays.asList(
+                CSVMappedColumnsDTO.builder().from("EMAIL").label("EMAIL").index(0).build(),
+                CSVMappedColumnsDTO.builder().from("FIRST_NAME").label("FIRST_NAME").index(1).build(),
+                CSVMappedColumnsDTO.builder().from("LAST_NAME").label("LAST_NAME").index(2).build(),
+                CSVMappedColumnsDTO.builder().from("AGE").label("AGE").index(3).build(),
+                CSVMappedColumnsDTO.builder().from("FULL NAME").label("FULL NAME").index(4).build(),
+                CSVMappedColumnsDTO.builder().from("ADDRESS").label("ADDRESS").index(5).build()
+        );
+
         CSVRequest request = new CSVRequest();
         request.setFilePath(filePath);
         request.setDelimiter(delimiter);
+        request.setMappedColumns(mappedColumns);
 
         assertThrows(EmptyContactsException.class, () -> csvFileService.processSource(request));
     }

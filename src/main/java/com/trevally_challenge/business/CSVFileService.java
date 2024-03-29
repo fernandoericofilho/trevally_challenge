@@ -88,12 +88,14 @@ public class CSVFileService {
             br.lines()
                     .map(line -> line.split(request.getDelimiter()))
                     .forEach(data -> {
+                        if (data[0].isEmpty()) {
+                            throw new EmptyContactsException(errorMessages.getEmptyContactExceptionMessageError());
+                        }
+
                         List<ContactAttribute> attributes = mapContactAttributes(data, mappedColumns);
                         mapContact(contacts, data[0], attributes);
                     });
-            if (contacts.isEmpty()) {
-                throw new EmptyContactsException(errorMessages.getEmptyContactExceptionMessageError());
-            }
+
         } catch (IOException e) {
             throw new FileExistException(errorMessages.getProcessingFileExceptionMessageError());
         }
