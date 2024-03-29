@@ -1,37 +1,28 @@
 package com.trevally_challenge.services;
 
-import com.trevally_challenge.config.ErrorMessages;
-import com.trevally_challenge.domain.dto.CSVMappedColumnsDTO;
-import com.trevally_challenge.exceptions.EmptyFileException;
-import com.trevally_challenge.exceptions.FileProcessingException;
-import com.trevally_challenge.exceptions.InvalidDelimiterException;
-import com.trevally_challenge.exceptions.MissingHeaderException;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import com.trevally_challenge.api.request.CSVRequest;
+import com.trevally_challenge.business.CSVFileService;
+import com.trevally_challenge.business.util.ErrorMessages;
+import com.trevally_challenge.infrastructure.dto.CSVMappedColumnsDTO;
+import com.trevally_challenge.infrastructure.entities.Source;
+import com.trevally_challenge.infrastructure.exceptions.EmptyFileException;
+import com.trevally_challenge.infrastructure.exceptions.FileProcessingException;
+import org.junit.Before;
+import org.junit.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayInputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-class CSVFileServiceTest {
-
-    public static final String TEST_CSV = "test.csv";
-    public static final String TEXT_CSV = "text/csv";
-    public static final String INVALID_FORMAT = "test.html";
-    private static final String HEADER_LINE = "Header1,Header2,Header3";
-    private static final String EMPTY_CONTENT = "";
-    private static final String MISSING_HEADER_CONTENT = "\n";
-    private static final String INVALID_DELIMITER_CONTENT = "Header1,Header2,Header3";
+public class CSVFileServiceTest {
 
     @Mock
     private ErrorMessages errorMessages;
@@ -39,64 +30,123 @@ class CSVFileServiceTest {
     @InjectMocks
     private CSVFileService csvFileService;
 
-    @BeforeEach
-    public void setup() {
-        MockitoAnnotations.initMocks(this);
+    private CSVRequest mockCSVRequest;
+
+    @Before
+    public void setUp() {
+        mockCSVRequest = new CSVRequest();
+        mockCSVRequest.setFilePath("mockFilePath");
+        mockCSVRequest.setDelimiter(",");
+        mockCSVRequest.setMappedColumns(Collections.emptyList());
     }
 
-    @Test
-    void testGetCSVHeaders_ValidFile() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(HEADER_LINE.getBytes());
-        MultipartFile file = new MockMultipartFile(TEST_CSV, TEST_CSV, TEXT_CSV, inputStream);
-
+    @Test(expected = FileProcessingException.class)
+    public void processCSVFile_NotFound_ExceptionThrown() throws IOException {
+        when(errorMessages.getProcessingFileError()).thenReturn("File processing error: ");
         when(errorMessages.getEmptyFileError()).thenReturn("Empty file error");
-        when(errorMessages.getMissingHeaderError()).thenReturn("Missing header error");
-        when(errorMessages.getInvalidDelimiterError()).thenReturn("Invalid delimiter error");
+        when(errorMessages.getInvalidFileFormatError()).thenReturn("Invalid file format error");
 
-        List<CSVMappedColumnsDTO> columns = csvFileService.extractHeaders(file, ",");
-        assertEquals(3, columns.size());
-        assertEquals("Header1", columns.get(0).getFrom());
-        assertEquals("Header2", columns.get(1).getFrom());
-        assertEquals("Header3", columns.get(2).getFrom());
+        csvFileService.extractHeaders(mockCSVRequest);
     }
 
-    @Test
-    void testGetCSVHeaders_EmptyFile() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(EMPTY_CONTENT.getBytes());
-        MultipartFile file = new MockMultipartFile(TEST_CSV, TEST_CSV, TEXT_CSV, inputStream);
+    @Test(expected = EmptyFileException.class)
+    public void processCSVFile_EmptyFile_ExceptionThrown() throws IOException {
+        File emptyFile = mock(File.class);
+        when(emptyFile.exists()).thenReturn(true);
+        when(emptyFile.length()).thenReturn(0L);
 
+        csvFileService.processSource(mockCSVRequest);
+    }
+
+    @Test(expected = FileProcessingException.class)
+    public void persistCSV_NotFound_ExceptionThrown() throws IOException {
+        when(errorMessages.getProcessingFileError()).thenReturn("File processing error: ");
         when(errorMessages.getEmptyFileError()).thenReturn("Empty file error");
+        when(errorMessages.getInvalidFileFormatError()).thenReturn("Invalid file format error");
 
-        assertThrows(EmptyFileException.class, () -> csvFileService.extractHeaders(file, ","));
+        csvFileService.persistCSV(mockCSVRequest);
+    }
+
+    @Test(expected = FileProcessingException.class)
+    public void processSource_EmptyFile_ExceptionThrown() throws IOException {
+        File emptyFile = mock(File.class);
+        when(emptyFile.exists()).thenReturn(true);
+        when(emptyFile.length()).thenReturn(0L);
+
+        csvFileService.processSource(mockCSVRequest);
+    }
+
+    @Test(expected = FileProcessingException.class)
+    public void processCSVFile_FileProcessingExceptionThrown() throws IOException {
+        CSVRequest mockCSVRequest = mock(CSVRequest.class);
+        when(mockCSVRequest.getFilePath()).thenReturn("invalid/path");
+
+        CSVFileService csvFileService = new CSVFileService();
+        csvFileService.processSource(mockCSVRequest);
+    }
+
+    @Test(expected = EmptyFileException.class)
+    public void processCSVFile_EmptyFileExceptionThrown() throws IOException {
+        CSVRequest mockCSVRequest = mock(CSVRequest.class);
+        File emptyFile = mock(File.class);
+        when(emptyFile.exists()).thenReturn(true);
+        when(emptyFile.length()).thenReturn(0L);
+        when(mockCSVRequest.getFilePath()).thenReturn("valid/path");
+
+        CSVFileService csvFileService = new CSVFileService();
+        csvFileService.processSource(mockCSVRequest);
+    }
+
+    @Test(expected = FileProcessingException.class)
+    public void processCSVFile_IOExceptionThrown() throws IOException {
+        CSVRequest mockCSVRequest = mock(CSVRequest.class);
+        File emptyFile = mock(File.class);
+        when(emptyFile.exists()).thenReturn(true);
+        when(emptyFile.length()).thenThrow(IOException.class);
+        when(mockCSVRequest.getFilePath()).thenReturn("valid/path");
+
+        CSVFileService csvFileService = new CSVFileService();
+        csvFileService.processSource(mockCSVRequest);
     }
 
     @Test
-    void testGetCSVHeaders_MissingHeader() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(MISSING_HEADER_CONTENT.getBytes());
-        MultipartFile file = new MockMultipartFile(TEST_CSV, TEST_CSV, TEXT_CSV, inputStream);
+    public void processSource_SuccessfullyProcessed() throws IOException {
+        CSVRequest mockCSVRequest = mock(CSVRequest.class);
 
-        when(errorMessages.getMissingHeaderError()).thenReturn("Missing header error");
+        File mockFile = mock(File.class);
+        when(mockFile.getName()).thenReturn("mockFileName");
+        when(mockCSVRequest.getFilePath()).thenReturn("valid/path");
+        when(mockCSVRequest.getDelimiter()).thenReturn(",");
 
-        assertThrows(MissingHeaderException.class, () -> csvFileService.extractHeaders(file, ","));
+        List<CSVMappedColumnsDTO> mappedColumns = new ArrayList<>();
+        CSVMappedColumnsDTO mappedColumn = new CSVMappedColumnsDTO();
+        mappedColumn.setIndex(0);
+        mappedColumn.setFrom("From");
+        mappedColumn.setLabel("Label");
+        mappedColumns.add(mappedColumn);
+        when(mockCSVRequest.getMappedColumns()).thenReturn(mappedColumns);
+
+        Source result = csvFileService.processSource(mockCSVRequest);
+        assertEquals("mockFileName", result.getFilePath());
+        assertEquals(1, result.getContacts().size());
+        assertEquals("From", result.getContacts().get(0).getAttributes().get(0).getAttributeName());
     }
 
-    @Test
-    void testGetCSVHeaders_InvalidDelimiter() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(INVALID_DELIMITER_CONTENT.getBytes());
-        MultipartFile file = new MockMultipartFile(TEST_CSV, TEST_CSV, TEXT_CSV, inputStream);
+    @Test(expected = FileProcessingException.class)
+    public void processSource_FileProcessingExceptionThrown() throws IOException {
+        CSVRequest mockCSVRequest = mock(CSVRequest.class);
+        File mockFile = mock(File.class);
+        when(mockFile.getName()).thenReturn("mockFileName");
+        when(mockCSVRequest.getFilePath()).thenReturn("valid/path");
+        when(mockCSVRequest.getDelimiter()).thenReturn(",");
+        List<CSVMappedColumnsDTO> mappedColumns = new ArrayList<>();
+        CSVMappedColumnsDTO mappedColumn = new CSVMappedColumnsDTO();
+        mappedColumn.setIndex(0);
+        mappedColumn.setFrom("From");
+        mappedColumn.setLabel("Label");
+        mappedColumns.add(mappedColumn);
+        when(mockCSVRequest.getMappedColumns()).thenReturn(mappedColumns);
 
-        when(errorMessages.getInvalidDelimiterError()).thenReturn("Invalid delimiter error");
-
-        assertThrows(InvalidDelimiterException.class, () -> csvFileService.extractHeaders(file, ";"));
-    }
-
-    @Test
-    void testGetCSVHeaders_InvalidFileExtension() throws IOException {
-        InputStream inputStream = new ByteArrayInputStream(HEADER_LINE.getBytes());
-        MultipartFile file = new MockMultipartFile(INVALID_FORMAT, INVALID_FORMAT, TEXT_CSV, inputStream);
-
-        when(errorMessages.getProcessingFileError()).thenReturn("Invalid file format. Only CSV files are supported.");
-
-        assertThrows(FileProcessingException.class, () -> csvFileService.extractHeaders(file, ","));
+        csvFileService.processSource(mockCSVRequest);
     }
 }
