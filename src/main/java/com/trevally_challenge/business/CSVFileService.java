@@ -13,11 +13,14 @@ import com.trevally_challenge.infrastructure.repository.SourceRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Stream;
 
 @Service
 public class CSVFileService {
@@ -31,97 +34,19 @@ public class CSVFileService {
     public MappedColumnsResponse extractHeaders(CSVRequest request) {
         try {
             File file = new File(request.getFilePath());
-            return processHeaders(file, request.getDelimiter());
-        } catch (IOException e) {
-            throw new FileProcessingException(errorMessages.getProcessingFileError() + e.getMessage());
-        }
-    }
-
-    public MappedColumnsResponse persistCSV(CSVRequest request) {
-        try {
-            File file = new File(request.getFilePath());
             validateFile(file);
             return processHeaders(file, request.getDelimiter());
         } catch (IOException e) {
-            throw new FileProcessingException(errorMessages.getProcessingFileError() + e.getMessage());
+            throw new ProcessingFileEsception(errorMessages.getProcessingFileExceptionMessageError());
         }
-    }
-
-    public Source processSource(CSVRequest request) {
-        File file = new File(request.getFilePath());
-        String delimiter = request.getDelimiter();
-        List<CSVMappedColumnsDTO> mappedColumns = request.getMappedColumns();
-
-        List<Contact> contacts = new ArrayList<>();
-
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-            String headerLine = br.readLine();
-            if (headerLine != null) {
-                String[] headers = headerLine.split(delimiter);
-                validateMappedColumns(mappedColumns, headers.length);
-                String line;
-                while ((line = br.readLine()) != null) {
-                    String[] data = line.split(delimiter);
-
-                    Contact contact = new Contact();
-                    contact.setId(UUID.randomUUID());
-                    contact.setEmail(data[0]);
-
-                    List<ContactAttribute> attributes = new ArrayList<>();
-                    for (CSVMappedColumnsDTO column : mappedColumns) {
-                        String value = getValueByIndex(data, column.getIndex(), headers.length);
-                        ContactAttribute attribute = new ContactAttribute();
-                        attribute.setId(UUID.randomUUID());
-                        attribute.setAttributeName(column.getLabel().isEmpty() ? column.getFrom() : column.getLabel());
-                        attribute.setAttributeValue(value);
-                        attributes.add(attribute);
-                    }
-
-                    contact.setAttributes(attributes);
-                    contacts.add(contact);
-                }
-            }
-        } catch (IOException e) {
-            throw new FileProcessingException(errorMessages.getProcessingFileError() + e.getMessage());
-        }
-
-        if (contacts.isEmpty()) {
-            throw new EmptyFileException(errorMessages.getEmptyFileError());
-        }
-
-        Source source = new Source();
-        source.setImportDate(LocalDateTime.now());
-        source.setSuccess(true);
-        source.setFilePath(file.getName());
-        source.setContacts(contacts);
-
-        return sourceRepository.save(source);
-    }
-
-    private String getValueByIndex(String[] data, int index, int numColumns) {
-        if (index >= 0 && index < numColumns) {
-            return data[index];
-        }
-        throw new InvalidColumnRangeException(errorMessages.getIndexOutOfRange() + index);
-    }
-
-    private void validateMappedColumns(List<CSVMappedColumnsDTO> mappedColumns, int numHeaders) {
-        mappedColumns.forEach(column -> {
-            if (column.getIndex() >= numHeaders) {
-                throw new InvalidColumnRangeException(errorMessages.getIndexOutOfRange() + column.getIndex());
-            }
-        });
     }
 
     private void validateFile(File file) {
         if (!file.exists()) {
-            throw new FileProcessingException(errorMessages.getProcessingFileError());
+            throw new FileExistException(errorMessages.getFileExistExceptionMessageError() + file.getName());
         }
-        if (file.length() == 0) {
-            throw new EmptyFileException(errorMessages.getEmptyFileError());
-        }
-        if (!isValidFileExtension(file.getName())) {
-            throw new FileProcessingException(errorMessages.getInvalidFileFormatError());
+        if (!file.getName().toLowerCase().endsWith(ValidFileFormat.VALID_CSV.getExtension())) {
+            throw new FileExtensionException(errorMessages.getFileExtensionExceptionMessageError());
         }
     }
 
@@ -131,54 +56,112 @@ public class CSVFileService {
     }
 
     private List<CSVMappedColumnsDTO> getCsvMappedColumnsDTOS(File file, String delimiter) throws IOException {
-        List<CSVMappedColumnsDTO> mappedColumns = new ArrayList<>();
-        validateFileNotEmpty(file);
-        validateFileExtension(file);
-        try (BufferedReader br = new BufferedReader(new InputStreamReader(file.toURI().toURL().openStream()))) {
-            String line = br.readLine();
-            checkHeaderExists(line);
-            checkDelimiter(delimiter, line);
-            mapColumns(line.split(delimiter), mappedColumns);
-        }
-        return mappedColumns;
-    }
-
-    private void validateFileNotEmpty(File file) {
-        if (file.length() == 0) {
-            throw new EmptyFileException(errorMessages.getEmptyFileError());
+        try (Stream<String> lines = Files.lines(file.toPath())) {
+            Optional<String> headerLine = lines.findFirst();
+            validateHeaderLine(headerLine.orElse(null), delimiter);
+            return headerLine.map(line -> mapColumns(line.split(delimiter))).orElse(Collections.emptyList());
         }
     }
 
-    private void validateFileExtension(File file) {
-        String filename = file.getName();
-        if (!isValidFileExtension(filename)) {
-            throw new FileProcessingException(errorMessages.getInvalidFileFormatError());
-        }
-    }
-
-    private boolean isValidFileExtension(String filename) {
-        return filename != null && filename.toLowerCase().endsWith(ValidFileFormat.VALID_CSV.getExtension());
-    }
-
-    private void checkHeaderExists(String line) {
+    private void validateHeaderLine(String line, String delimiter) {
         if (line == null || line.isEmpty()) {
-            throw new MissingHeaderException(errorMessages.getMissingHeaderError());
+            throw new MissingHeaderException(errorMessages.getMissingHeaderExceptionMessageError());
+        }
+        if (!line.contains(delimiter)) {
+            throw new InvalidDelimiterException(errorMessages.getInvalidDelimiterExceptionMessageError());
         }
     }
 
-    private void checkDelimiter(String delimiter, String headerLine) {
-        if (!headerLine.contains(delimiter)) {
-            throw new InvalidDelimiterException(errorMessages.getInvalidDelimiterError());
+    public Source processSource(CSVRequest request) {
+        File file = new File(request.getFilePath());
+        validateFile(file);
+
+        List<CSVMappedColumnsDTO> mappedColumns = request.getMappedColumns();
+        List<Contact> contacts = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+            String headerLine = br.readLine();
+            validateHeaderLine(headerLine, request.getDelimiter());
+
+            int headersLength = headerLine.split(request.getDelimiter()).length;
+            validateReMappedColumns(mappedColumns, headersLength);
+
+            br.lines()
+                    .map(line -> line.split(request.getDelimiter()))
+                    .forEach(data -> {
+                        List<ContactAttribute> attributes = mapContactAttributes(data, mappedColumns);
+                        mapContact(contacts, data[0], attributes);
+                    });
+            if (contacts.isEmpty()) {
+                throw new EmptyContactsException(errorMessages.getEmptyContactExceptionMessageError());
+            }
+        } catch (IOException e) {
+            throw new FileExistException(errorMessages.getProcessingFileExceptionMessageError());
         }
+
+        Source source = mapContact(contacts, file.getName());
+        return sourceRepository.save(source);
     }
 
-    private void mapColumns(String[] headers, List<CSVMappedColumnsDTO> mappedColumns) {
+    private Source mapContact(List<Contact> contacts, String fileName) {
+        Source source = new Source();
+        source.setImportDate(LocalDateTime.now());
+        source.setSuccess(true);
+        source.setFilePath(fileName);
+        source.setContacts(contacts);
+        return source;
+    }
+
+    private void mapContact(List<Contact> contacts, String email, List<ContactAttribute> attributes) {
+        Contact contact = new Contact();
+        contact.setId(UUID.randomUUID());
+        contact.setEmail(email);
+        contact.setAttributes(attributes);
+        contacts.add(contact);
+    }
+
+    private List<ContactAttribute> mapContactAttributes(String[] data, List<CSVMappedColumnsDTO> mappedColumns) {
+        List<ContactAttribute> attributes = new ArrayList<>();
+        for (CSVMappedColumnsDTO column : mappedColumns) {
+            String value = getValueByIndex(data, column.getIndex());
+            String attributeName = column.getLabel().isEmpty() ? column.getFrom() : column.getLabel();
+            ContactAttribute attribute = createContactAttribute(attributeName, value);
+            attributes.add(attribute);
+        }
+        return attributes;
+    }
+
+    private ContactAttribute createContactAttribute(String attributeName, String attributeValue) {
+        ContactAttribute attribute = new ContactAttribute();
+        attribute.setId(UUID.randomUUID());
+        attribute.setAttributeName(attributeName);
+        attribute.setAttributeValue(attributeValue);
+        return attribute;
+    }
+
+    private String getValueByIndex(String[] data, int index) {
+        if (index >= 0 && index < data.length) {
+            return data[index];
+        }
+        throw new IndexOutOfRangeException(errorMessages.getIndexOutOfRangeExceptionMessageError());
+    }
+
+    private void validateReMappedColumns(List<CSVMappedColumnsDTO> mappedColumns, int numHeaders) {
+        mappedColumns.forEach(column -> {
+            if (column.getIndex() >= numHeaders) {
+                throw new IndexOutOfRangeException(errorMessages.getIndexOutOfRangeExceptionMessageError());
+            }
+        });
+    }
+
+    private List<CSVMappedColumnsDTO> mapColumns(String[] headers) {
+        List<CSVMappedColumnsDTO> mappedColumns = new ArrayList<>();
         for (int i = 0; i < headers.length; i++) {
-            CSVMappedColumnsDTO mappedColumn = new CSVMappedColumnsDTO();
-            mappedColumn.setFrom(headers[i]);
-            mappedColumn.setLabel(headers[i]);
-            mappedColumn.setIndex(i);
+            CSVMappedColumnsDTO mappedColumn = CSVMappedColumnsDTO.builder()
+                    .from(headers[i])
+                    .label(headers[i])
+                    .index(i).build();
             mappedColumns.add(mappedColumn);
         }
+        return mappedColumns;
     }
 }

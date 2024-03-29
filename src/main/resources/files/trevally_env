@@ -1,0 +1,15 @@
+{
+	"id": "16e3d8ab-5ffa-4ad1-885d-0a395566d53f",
+	"values": [
+		{
+			"key": "mappedColumns",
+			"value": "",
+			"type": "default",
+			"enabled": true
+		}
+	],
+	"name": "Globals",
+	"_postman_variable_scope": "globals",
+	"_postman_exported_at": "2024-03-29T19:11:47.370Z",
+	"_postman_exported_using": "Postman/10.24.7"
+}

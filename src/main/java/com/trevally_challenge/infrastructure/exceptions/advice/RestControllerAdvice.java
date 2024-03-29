@@ -1,10 +1,6 @@
 package com.trevally_challenge.infrastructure.exceptions.advice;
 
-import com.trevally_challenge.business.util.ErrorMessages;
-import com.trevally_challenge.infrastructure.exceptions.EmptyFileException;
-import com.trevally_challenge.infrastructure.exceptions.FileProcessingException;
-import com.trevally_challenge.infrastructure.exceptions.InvalidDelimiterException;
-import com.trevally_challenge.infrastructure.exceptions.MissingHeaderException;
+import com.trevally_challenge.infrastructure.exceptions.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,26 +12,39 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @RequiredArgsConstructor
 public class RestControllerAdvice extends ResponseEntityExceptionHandler {
 
-    private final ErrorMessages errorMessages;
+    @ExceptionHandler(ProcessingFileEsception.class)
+    private ResponseEntity<RestErrorMessage> processingFileHandler(ProcessingFileEsception exception) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+    }
 
-    @ExceptionHandler(EmptyFileException.class)
-    private ResponseEntity<RestErrorMessage> emptyFileHandler(EmptyFileException exception) {
-        return buildResponse(HttpStatus.NOT_FOUND, errorMessages.getEmptyFileError());
+    @ExceptionHandler(FileExistException.class)
+    private ResponseEntity<RestErrorMessage> fileExistHandler(FileExistException exception) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+    }
+
+    @ExceptionHandler(FileExtensionException.class)
+    private ResponseEntity<RestErrorMessage> fileExtensionHandler(FileExtensionException exception) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 
     @ExceptionHandler(MissingHeaderException.class)
     private ResponseEntity<RestErrorMessage> missingHeaderHandler(MissingHeaderException exception) {
-        return buildResponse(HttpStatus.BAD_REQUEST, errorMessages.getMissingHeaderError());
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 
     @ExceptionHandler(InvalidDelimiterException.class)
     private ResponseEntity<RestErrorMessage> invalidDelimiterHandler(InvalidDelimiterException exception) {
-        return buildResponse(HttpStatus.BAD_REQUEST, errorMessages.getInvalidDelimiterError());
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 
-    @ExceptionHandler(FileProcessingException.class)
-    private ResponseEntity<RestErrorMessage> fileProcessingHandler(FileProcessingException exception) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, errorMessages.getProcessingFileError() + exception.getMessage());
+    @ExceptionHandler(IndexOutOfRangeException.class)
+    private ResponseEntity<RestErrorMessage> indexOutOfRangeHandler(IndexOutOfRangeException exception) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
+    }
+
+    @ExceptionHandler(EmptyContactsException.class)
+    private ResponseEntity<RestErrorMessage> emptyContactsHandler(EmptyContactsException exception) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, exception.getMessage());
     }
 
     private ResponseEntity<RestErrorMessage> buildResponse(HttpStatus status, String message) {

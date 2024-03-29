@@ -1,5 +1,6 @@
 package com.trevally_challenge.infrastructure.dto;
 
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -13,6 +14,7 @@ import lombok.Data;
  *   For example, display the Last Name (or Full Name) first instead of First Name.
  */
 @Data
+@Builder
 public class CSVMappedColumnsDTO {
     private String from;
     private String label;

@@ -8,11 +8,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "error")
 public class ErrorMessages {
-    private String invalidDelimiterError;
-    private String emptyFileError;
-    private String missingHeaderError;
-    private String processingFileError;
-    private String invalidFileFormatError;
-    private String emptyMappedColumnsError;
-    private String indexOutOfRange;
+
+    private String processingFileExceptionMessageError;
+    private String fileExistExceptionMessageError;
+    private String fileExtensionExceptionMessageError;
+    private String missingHeaderExceptionMessageError;
+    private String invalidDelimiterExceptionMessageError;
+    private String indexOutOfRangeExceptionMessageError;
+    private String emptyContactExceptionMessageError;
+
 }

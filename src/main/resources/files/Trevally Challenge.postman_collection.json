@@ -7,7 +7,50 @@
 	},
 	"item": [
 		{
-			"name": "getCSVHeaders",
+			"name": "extractHeader",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"var jsonData = pm.response.json();\r",
+							"pm.environment.set(\"mappedColumns\", JSON.stringify(jsonData.mappedColumns));\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"filePath\": \"C:/Estudo/2024/trevally_challenge/src/main/resources/files/exampleFile.csv\",\r\n  \"delimiter\": \";\"\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/csv/headers",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"csv",
+						"headers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "persistData",
 			"event": [
 				{
 					"listen": "test",
@@ -15,39 +58,74 @@
 						"exec": [
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
 			"request": {
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
 				"body": {
-					"mode": "formdata",
-					"formdata": [
-						{
-							"key": "file",
-							"type": "file",
-							"src": "/path/to/your/file.csv"
-						},
-						{
-							"key": "delimiter",
-							"value": ",",
-							"type": "text"
-						}
-					]
+					"mode": "raw",
+					"raw": "{\r\n    \"filePath\": \"C:/Estudo/2024/trevally_challenge/src/main/resources/files/exampleFile.csv\",\r\n    \"delimiter\": \"b\",\r\n    \"mappedColumns\": [\r\n        {\r\n            \"from\": \"EMAIL\",\r\n            \"label\": \"emailzinho\",\r\n            \"index\": 0\r\n        },\r\n        {\r\n            \"from\": \"FIRST_NAME\",\r\n            \"label\": \"123\",\r\n            \"index\": 0\r\n        },\r\n        {\r\n            \"from\": \"LAST_NAME\",\r\n            \"label\": \"teste\",\r\n            \"index\": 0\r\n        },\r\n        {\r\n            \"from\": \"AGE\",\r\n            \"label\": \"AGE\",\r\n            \"index\": 2\r\n        },\r\n        {\r\n            \"from\": \"FULL NAME\",\r\n            \"label\": \"FULL NAME\",\r\n            \"index\": 1\r\n        },\r\n        {\r\n            \"from\": \"ADDRESS\",\r\n            \"label\": \"ADDRESS\",\r\n            \"index\": 5\r\n        }\r\n    ]\r\n}"
 				},
 				"url": {
-					"raw": "http://localhost:8080/api/csv/headers",
+					"raw": "http://localhost:8080/csv/persist",
 					"protocol": "http",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"api",
 						"csv",
-						"headers"
+						"persist"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "persistDataWithoutChanges",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"filePath\": \"C:/Estudo/2024/trevally_challenge/src/main/resources/files/exampleFile.csv\",\r\n    \"delimiter\": \"b\",\r\n    {{mappedColumns}}\r\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/csv/persist",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"csv",
+						"persist"
 					]
 				}
 			},
