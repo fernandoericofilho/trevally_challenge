@@ -4,13 +4,15 @@ import com.trevally_challenge.api.request.CSVRequest;
 import com.trevally_challenge.api.response.MappedColumnsResponse;
 import com.trevally_challenge.business.util.ErrorMessages;
 import com.trevally_challenge.infrastructure.dto.CSVMappedColumnsDTO;
+import com.trevally_challenge.infrastructure.dto.SourceDTO;
 import com.trevally_challenge.infrastructure.entities.Contact;
 import com.trevally_challenge.infrastructure.entities.ContactAttribute;
 import com.trevally_challenge.infrastructure.entities.Source;
 import com.trevally_challenge.infrastructure.enums.PermittedFormats;
 import com.trevally_challenge.infrastructure.exceptions.*;
+import com.trevally_challenge.infrastructure.mappers.SourceMapper;
 import com.trevally_challenge.infrastructure.repository.SourceRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -22,14 +24,15 @@ import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Stream;
 
+@RequiredArgsConstructor
 @Service
 public class CSVFileService {
 
-    @Autowired
-    private ErrorMessages errorMessages;
+    private final ErrorMessages errorMessages;
 
-    @Autowired
-    private SourceRepository sourceRepository;
+    private final SourceRepository sourceRepository;
+
+    private final SourceMapper sourceMapper;
 
     public MappedColumnsResponse extractHeaders(CSVRequest request) {
         try {
@@ -72,7 +75,7 @@ public class CSVFileService {
         }
     }
 
-    public Source processSource(CSVRequest request) {
+    public SourceDTO processSource(CSVRequest request) {
         File file = new File(request.getFilePath());
         validateFile(file);
 
@@ -101,7 +104,7 @@ public class CSVFileService {
         }
 
         Source source = mapContact(contacts, file.getName());
-        return sourceRepository.save(source);
+        return sourceMapper.sourceToSourceDTO(sourceRepository.save(source));
     }
 
     private Source mapContact(List<Contact> contacts, String fileName) {
