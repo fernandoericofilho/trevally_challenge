@@ -1,7 +1,10 @@
-#  MongoDB
 spring:
   data:
-  mongodb:
-    host=localhost
-    port=27017
-    database=trevally_challenge
+    mongodb:
+      host: localhost
+      port: 27017
+      database: trevally_challenge
+
+logging:
+  level:
+    org.springframework.data.mongodb.core: DEBUG
